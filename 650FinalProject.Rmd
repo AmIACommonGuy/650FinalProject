@@ -171,7 +171,7 @@ nh3 = nh2[,c("Race1","Testosterone", "Age", "TotChol", "Weight", "Height")]
 ## Exploratory Stats: Continous Variables
 ```{r}
 #Compare Y to continous X
-scatmatrixData = nh2[,c("Testosterone", "TotChol", "Age", "Height", "Weight", "BPSysAve", "BPDiaAve")]
+scatmatrixData = nh2[,c("Testosterone", "TotChol", "Age", "Height", "Weight")]
 panel.hist <- function(x, ...)
 {
     usr <- par("usr"); on.exit(par(usr))
@@ -217,13 +217,25 @@ m_adjusted_nolog =  lm(Testosterone~RegularMarij2 + Agec + Sex + Race1 + PhysAc 
 summary(m_adjusted_nolog)
 checka(m_adjusted_nolog)
 ```
-##Adjusted Model with Log(Y)
+## Adjusted Model log(Y)
 ```{r}
-m1 =  lm(log(Testosterone)~RegularMarij2 + Agec + Sex + Race1 + PhysAc + Depress + Weight + 
-             Diabete + HypT + TotChol + Height, 
-         data = nh2)
+m1 <- lm(log(Testosterone)~RegularMarij2 + Agec + Sex + Race1 + PhysAc + Depress + Weight +  Diabete + HypT + TotChol + Height, data = nh2)
 summary(m1)
 checka(m1)
+```
+
+
+##Adjusted Model with considering first literature, then explatory stat, sand log (Y) AND interaction adjusted model only adding interactions for B that are signifcant in non-interaction and exploratory stats/lit supports
+```{r}
+m_alt =  lm(log(Testosterone)~RegularMarij2 + Agec + Sex  + Depress + Weight + HypT + TotChol + Height, 
+         data = nh2)
+summary(m_alt)
+checka(m_alt)
+
+m_alt_int =  lm(log(Testosterone)~RegularMarij2 + Agec + Sex  + Depress + Weight + HypT + TotChol + Height + Weight*Height + Agec*(Weight + Height) + Sex*(Weight + Height), 
+         data = nh2)
+summary(m_alt_int)
+checka(m_alt_int)
 ```
 
 ```{r}
@@ -285,7 +297,7 @@ checka(m1.2)
 m_age_woit <- lm(log(Testosterone)~RegularMarij2 + Agec + Sex + Race2 + PhysAc + Depress + Weight + 
              Diabete + HypT + TotChol + Height, data = nh2)
 summary(m_age_woit)
-checka(m1.2)
+checka(m_age_woit)
 ```
 
 ## This would be our final model. 
