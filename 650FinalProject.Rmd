@@ -157,6 +157,14 @@ nh3 = nh2[,c("Race1","Testosterone", "Age", "TotChol", "Weight", "Height")]
                                all_categorical() ~ "{n} ({p}%)"),
               ) %>%
   add_n %>%
+ add_p(test = list(Testosterone ~ "aov",
+                    Age ~ "aov",
+                    TotChol ~ "aov",
+                    Weight ~ "aov",
+                    Height ~ "aov"),
+        test.args = all_tests("aov") ~ list(var.equal = TRUE),## Important argument! 
+        pvalue_fun = function(x) style_pvalue(x, digits = 2)) %>%
+  bold_p(t = 0.05) %>%
   bold_labels
 
 ```
