@@ -16,6 +16,7 @@ library("corrplot")
 library("gtsummary")
 library("dplyr")
 library("olsrr")
+library("moderndive")
 ```
 
 ## Data Cleaning and Variates Selection
@@ -207,6 +208,17 @@ summary(m_unrefined)
 checka(m_unrefined) ##Comment on plots
 ```
 
+#VISUALIZATION
+```{r}
+ggplot(nh2, aes(x = factor(RegMarij), y = Testosterone)) +
+  geom_boxplot() +
+  labs(title = "Testorone levels by Marijuana use", x = "Regular Marijuana User", y = "Testosterone (ng/dL)") +
+  scale_x_discrete(labels = c("No", "Yes")) +
+  theme_classic()
+  
+```
+
+
 ## Adjusted Model with no log 
 ```{r}
 m_adjusted_nolog =  lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
@@ -215,6 +227,10 @@ m_adjusted_nolog =  lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + 
 summary(m_adjusted_nolog)
 checka(m_adjusted_nolog) ##Constant variance. We think the two clusters are due to sex. Also trend within a cluster. 
 ```
+
+
+
+
 ## Both models above had linear trend in plots, so we adjusted model log(Y)-THIS IS FINAL MAIN EFFECTS MODEL
 ```{r}
 m_adjust <- lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
@@ -222,6 +238,13 @@ m_adjust <- lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Wei
 summary(m_adjust)
 checka(m_adjust)
 ```
+
+
+```{r}
+get_regression_table(m_adjust)
+```
+
+
 
 ## Due to constant variance plot having clusters and literature, we think that TT distribution by sex underlies the trend. Test this by stratifying model. See that in stratified models, this is elimnated 
 ```{r}
@@ -265,13 +288,18 @@ m_final <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + W
 summary(m_final)
 plot(m_final$fitted.values, m_final$residuals)
 hist(m_final$residuals)
-car::qqPlot(m_final$residuals)
+car::qqPlot(m_final$residuals, xlab = "Normal Quantiles", ylab = "Residuals", main = "QQPlot for Final Model") 
 shapiro.test(m_final$residuals)
 ```
+
+
+
 ```{r}
 olsrr::ols_plot_dffits(m_final)
 olsrr::ols_plot_dfbetas(m_final)
 olsrr::ols_plot_cooksd_chart(m_final)
+plot(m_final,which=4)
+
 m_alt_cov = covratio(m_final)
 n = nrow(nh2) 
 p = m_final$rank
