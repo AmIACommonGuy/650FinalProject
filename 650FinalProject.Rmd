@@ -122,7 +122,7 @@ Our first limitation is that complete/incomplete data are significantly differen
 nh2 = drop_na(nh1) #complete data set
 ```
 
-## Exploratory Stats: Testosterone (and other continous)  by Categorical Variables Tables (assess)
+## Exploratory Stats: Testosterone (and other continous)  by Categorical Variables Tables (assess) (NOT INCLUDE IN PAPER OR PRESENTATION DIRECTLY )
 ```{r}
 SummaryTestTable <- function(x){ 
 nh3 = nh2[,c(all_of(x),"Testosterone", "Age", "TotChol", "Weight", "Height")]
@@ -162,7 +162,7 @@ nh3 = nh2[,c("Race1","Testosterone", "Age", "TotChol", "Weight", "Height")]
   bold_p(t = 0.05) %>%
   bold_labels
 ```
-## Exploratory Stats: Continous Variables
+## Exploratory Stats: Continous Variables (NOT INCLUDE IN PAPER OR PRESENTATION DIRECTLY )
 ```{r}
 #Compare Y to continuous X
 scatmatrixData = nh2[,c("Testosterone", "TotChol", "Age", "Height", "Weight")]
@@ -212,21 +212,6 @@ m_adjusted_nolog =  lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + 
 summary(m_adjusted_nolog)
 checka(m_adjusted_nolog) ##Constant variance. We think the two clusters are due to sex. Also trend within a cluster. 
 ```
-
-## Due to constant variance plot having clusters and literature, we think that TT distribution by sex underlies the trend. Test this by stratifying model. See that in stratified models, this is elimnated 
-```{r}
-nhFemale = nh2[ which(nh2$Sex == 1), ]
-nhMale = nh2[ which(nh2$Sex == 0), ]
-m_F = lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
-             Diabete + HypT + TotCholc,
-         data = nhFemale)
-plot(m_F$fitted.values, m_F$residuals)
-m_M = lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
-             Diabete + HypT + TotCholc,
-         data = nhMale)
-plot(m_F$fitted.values, m_F$residuals)
-```
-
 ## Both models above had linear trend in plots, so we adjusted model log(Y)-THIS IS FINAL MAIN EFFECTS MODEL
 ```{r}
 m_adjust <- lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
@@ -234,6 +219,24 @@ m_adjust <- lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Wei
 summary(m_adjust)
 checka(m_adjust)
 ```
+
+## Due to constant variance plot having clusters and literature, we think that TT distribution by sex underlies the trend. Test this by stratifying model. See that in stratified models, this is elimnated 
+```{r}
+nhFemale = nh2[ which(nh2$Sex == 1), ]
+nhMale = nh2[ which(nh2$Sex == 0), ]
+m_F = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
+             Diabete + HypT + TotCholc,
+         data = nhFemale)
+summary(m_F)
+plot(m_F$fitted.values, m_F$residuals)
+m_M = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
+             Diabete + HypT + TotCholc,
+         data = nhMale)
+summary(m_M)
+plot(m_F$fitted.values, m_F$residuals)
+```
+
+
 
 ##Adding interactions. Based on analysis and stratified models, we assume Sex has effect modifcation on variables. 
 ```{r}
@@ -245,7 +248,7 @@ summary(m_int)
 ## Remove all insig interactions, and checks assumptions (not linearity, as this is checked only for main effects (see above))
 ```{r}
 m_final <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
-             Diabete + HypT + TotCholc + Sex*(Agec + Race1  + Weightc + Heightc +
+             Diabete + HypT + TotCholc + Sex*(Agec + Race1  + RegMarij +  Weightc + Heightc +
              Diabete + TotCholc),  data = nh2))
 summary(m_final)
 plot(m_final$fitted.values, m_final$residuals)
