@@ -253,7 +253,7 @@ nh2$Heightc = (nh2$Height-mean(nh2$Height, na.rm = TRUE))/sd(nh2$Height, na.rm =
 nh2$Agec = (nh2$Age-mean(nh2$Age, na.rm = TRUE))/sd(nh2$Age, na.rm = TRUE)
 nh2$TotCholc = (nh2$TotChol-mean(nh2$TotChol, na.rm = TRUE))/sd(nh2$TotChol, na.rm = TRUE)
 ```
-## Function to check assumptions 
+## Function to check assumptions (keep)
 ```{r}
 checka <- function (model) {
   car::avPlots(model)
@@ -330,12 +330,26 @@ m_F = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heigh
              Diabete + HypT + TotCholc,
          data = nhFemale)
 summary(m_F)
-plot(m_F$fitted.values, m_F$residuals)
+m_F %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Male Specific Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+plot(m_F$fitted.values, m_F$residuals, xlab="Fitted Values", ylab= "Studentized Residuals", main= "Fitted vs Residuals Plot Male Model")
 m_M = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc,
          data = nhMale)
 summary(m_M)
-plot(m_F$fitted.values, m_F$residuals)
+m_M %>%
+    tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Female Specific Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+plot(m_F$fitted.values, m_F$residuals, xlab="Fitted Values", ylab= "Studentized Residuals", main= "Fitted vs Residuals Plot Female Model")
 ```
 
 ## Multicolinearity check
@@ -350,8 +364,15 @@ m_int <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Wei
              Diabete + HypT + TotCholc + Sex*(RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc),  data = nh2))
 summary(m_int)
+m_int %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Interaction Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
 ```
-## Remove all insig interactions, and checks assumptions (not linearity, as this is checked only for main effects (see above))
+## Remove all insig interactions, and checks assumptions (not linearity, as this is checked only for main effects (see above)) (do we need to include)
 ```{r}
 m_final <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc + Sex*(Agec + Race1  + RegMarij +  Weightc + Heightc +
@@ -361,7 +382,15 @@ plot(m_final$fitted.values, m_final$residuals)
 hist(m_final$residuals)
 car::qqPlot(m_final$residuals)
 shapiro.test(m_final$residuals)
+m_final %>%
+    tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Final Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
 ```
+
 ```{r}
 olsrr::ols_plot_dffits(m_final)
 olsrr::ols_plot_dfbetas(m_final)
