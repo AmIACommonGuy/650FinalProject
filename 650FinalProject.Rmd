@@ -16,9 +16,14 @@ library("corrplot")
 library("gtsummary")
 library("dplyr")
 library("olsrr")
+library("knitr")
+install.packages("kableExtra")
+library(kableExtra)
+install.packages("moderndive")
+library("moderndive")
 ```
 
-## Data Cleaning and Variates Selection
+## Data Cleaning and Variates Selection (keep in final)
 ```{r}
 varinterst = c("Age","Gender","Race1","Depressed","Diabetes","BPSysAve", "BPDiaAve", "TotChol", "Testosterone", "RegularMarij", "Weight", "Height")
 nh1 = nh[,varinterst]
@@ -43,7 +48,9 @@ nhF = nhF[,!(names(nhF) %in% drops)]
 nhM = nhM[,!(names(nhM) %in% drops)]
 ```
 
-## Complete/Incomplete Data Set
+## Complete/Incomplete Data Set (keep in final)
+
+However, there is significant difference in many varaibles. We need to further justify the reason behind by stratifing by sex.
 ```{r}
 nh1[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
  tbl_summary(by = Incomplete,
@@ -65,12 +72,15 @@ nh1[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", 
         test.args = all_tests("t.test") ~ list(var.equal = TRUE),## Important argument! 
         pvalue_fun = function(x) style_pvalue(x, digits = 2)) %>%
   bold_p(t = 0.05) %>%
-  bold_labels
+  bold_labels %>% 
+   modify_spanning_header(c("stat_1", "stat_2") ~ "**Missing Data**") 
 ```
+
 ## Female only Complete/Incomplete Data Set
+This stratified dataset is use to check the influence of sex. We think that if we adjust sex, testosterone will not be significantly different. 
 ```{r}
 ## Shiny app
-nhF[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
+nhF[,c("Age","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
  tbl_summary(by = Incomplete,
               missing = "no",
               statistic = list(all_continuous() ~ "{mean} ({sd})",
@@ -94,8 +104,9 @@ nhF[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", 
 ```
 
 ##Exploratory Stats: Male only Complete/Incomplete Data Set
+The same reasoning as the female set.
 ```{r}
-nhM[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
+nhM[,c("Age","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
  tbl_summary(by = Incomplete,
               missing = "no",
               statistic = list(all_continuous() ~ "{mean} ({sd})",
@@ -117,13 +128,69 @@ nhM[,c("Age","Gender","Race1","Depressed","Diabetes","TotChol", "Testosterone", 
   bold_p(t = 0.05) 
 ```
 
-Our first limitation is that complete/incomplete data are significantly different. Even if we adjusted for gender, there is still significant difference between the two data set. Using the complete model can be biased. Not generalizable to US population. 
-
 ```{r}
 nh2 = drop_na(nh1) #complete data set
 ```
 
-## Exploratory Stats: Testosterone (and other continous)  by Categorical Variables Tables (assess) (NOT INCLUDE IN PAPER OR PRESENTATION DIRECTLY )
+## Sex Baseline characteristics (keep in final)
+```{r}
+nh2[,c("Age","Sex","Race1","Depressed","Diabetes","TotChol", "Testosterone", "Weight", "Height", "HypT", "RegularMarij")] %>%
+ tbl_summary(by = "Sex",
+              missing = "no",
+              statistic = list(all_continuous() ~ "{mean} ({sd})",
+                               all_categorical() ~ "{n} ({p}%)"),
+              ) %>%
+  add_n %>%
+  add_p(test = list(Age ~ "t.test",
+                    RegularMarij ~ "chisq.test",
+                    Race1 ~ "chisq.test",
+                    Depressed ~ "chisq.test",
+                    Diabetes ~ "chisq.test",
+                    HypT ~ "chisq.test",
+                    TotChol ~ "t.test",
+                    Testosterone ~ "t.test",
+                    Weight ~ "t.test",
+                    Height ~ "t.test"),
+        test.args = all_tests("t.test") ~ list(var.equal = TRUE),## Important argument! 
+        pvalue_fun = function(x) style_pvalue(x, digits = 2)) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels %>%
+    modify_spanning_header(c("stat_1", "stat_2") ~ "**Sex**") 
+```
+
+## RegMarij Baseline characteristics (keep in final)
+```{r}
+nh2[,c("Age","Sex","Race1","Depressed","Diabetes","TotChol", "Testosterone", "Weight", "Height", "HypT", "RegularMarij")] %>%
+ tbl_summary(by = "RegularMarij",
+              missing = "no",
+              statistic = list(all_continuous() ~ "{mean} ({sd})",
+                               all_categorical() ~ "{n} ({p}%)"),
+              ) %>%
+  add_n %>%
+  add_p(test = list(Age ~ "t.test",
+                    Sex ~ "chisq.test",
+                    Race1 ~ "chisq.test",
+                    Depressed ~ "chisq.test",
+                    Diabetes ~ "chisq.test",
+                    HypT ~ "chisq.test",
+                    TotChol ~ "t.test",
+                    Testosterone ~ "t.test",
+                    Weight ~ "t.test",
+                    Height ~ "t.test"),
+        test.args = all_tests("t.test") ~ list(var.equal = TRUE),## Important argument! 
+        pvalue_fun = function(x) style_pvalue(x, digits = 2)) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels %>%
+    modify_spanning_header(c("stat_1", "stat_2") ~ "**History of Regular Marijuana Use**") 
+```
+
+
+Our first limitation is that complete/incomplete data are significantly different. Even if we adjusted for gender, there is still significant difference between the two data set. Using the complete model can be biased. Not generalizable to US population. 
+
+
+
+## Exploratory Stats: Testosterone (and other continous)  by Categorical Variables Tables (assess)
+This is used to justify categorical variables.
 ```{r}
 SummaryTestTable <- function(x){ 
 nh3 = nh2[,c(all_of(x),"Testosterone", "Age", "TotChol", "Weight", "Height")]
@@ -164,7 +231,9 @@ nh3 = nh2[,c("Race1","Testosterone", "Age", "TotChol", "Weight", "Height")]
   bold_labels
   
 ```
-## Exploratory Stats: Continous Variables (NOT INCLUDE IN PAPER OR PRESENTATION DIRECTLY )
+
+## Exploratory Stats: Continous Variables 
+This is used to double check if the continuous variables are valid picked. We focus on Pearson correlation.
 ```{r}
 #Compare Y to continuous X
 scatmatrixData = nh2[,c("Testosterone", "TotChol", "Age", "Height", "Weight")]
@@ -182,6 +251,7 @@ cormat = cor(scatmatrixData)
 pres <- cor.mtest(scatmatrixData, conf.level = .95)
 corrplot.mixed(cormat, lower.col = "black", number.cex = 1,p.mat = pres$p, sig.level = .05)
 ```
+
 ## Now center continous variables (Needed)
 ```{r}
 nh2$Weightc = (nh2$Weight-mean(nh2$Weight, na.rm = TRUE))/sd(nh2$Weight, na.rm = TRUE)
@@ -189,38 +259,76 @@ nh2$Heightc = (nh2$Height-mean(nh2$Height, na.rm = TRUE))/sd(nh2$Height, na.rm =
 nh2$Agec = (nh2$Age-mean(nh2$Age, na.rm = TRUE))/sd(nh2$Age, na.rm = TRUE)
 nh2$TotCholc = (nh2$TotChol-mean(nh2$TotChol, na.rm = TRUE))/sd(nh2$TotChol, na.rm = TRUE)
 ```
-## Function to check assumptions 
+
+## Function to check assumptions (keep)
 ```{r}
 checka <- function (model) {
   car::avPlots(model)
-  plot(model$fitted.values, rstudent(model))
-  hist(rstudent(model))
-  car::qqPlot(rstudent(model))
+  plot(model$fitted.values, rstudent(model), xlab="Fitted Values", ylab= "Studentized Residuals", main= "Fitted vs Residuals Plot")
+  hist(rstudent(model), xlab = "Studentized Residuals", main= "Histogram of Studentized Residuals")
+  car::qqPlot(rstudent(model),  xlab = "Normal Quantiles", ylab = "Residuals", main = "QQPlot")
   shapiro.test(rstudent(model)
                ) ##Should we include shapiro wilk????
 }
 ``` 
-## Unrefined Model (what to say about this?)
+
+## Unrefined Model
 ```{r}
 m_unrefined <- lm(Testosterone~RegMarij, data=nh2)
 summary(m_unrefined)
-checka(m_unrefined) ##Comment on plots
+checka(m_unrefined) 
+m_unrefined %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Unadjusted Model Regression Summary***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+```
+
+```{r}
+ ggplot(nh2, aes(x = factor(RegMarij), y = Testosterone)) +
+   geom_boxplot() +
+   labs(title = "Testorone levels by Marijuana use", x = "Regular Marijuana User", y = "Testosterone (ng/dL)") +
+   scale_x_discrete(labels = c("No", "Yes")) +
+   theme_classic()
 ```
 
 ## Adjusted Model with no log 
+Constant Variance violated. Hist of testosterone is very right skewed.
 ```{r}
 m_adjusted_nolog =  lm(Testosterone~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc, 
          data = nh2)
 summary(m_adjusted_nolog)
-checka(m_adjusted_nolog) ##Constant variance. We think the two clusters are due to sex. Also trend within a cluster. 
+checka(m_adjusted_nolog)
+m_adjusted_nolog %>%
+   tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Adjusted Model Regression Summary***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+ hist(nh2$Testosterone, xlab = "Testosterone (ng/dL)", main= "Histogram of Testosterone")
+  
+##Constant variance. We think the two clusters are due to sex. Also trend within a cluster. 
 ```
+
 ## Both models above had linear trend in plots, so we adjusted model log(Y)-THIS IS FINAL MAIN EFFECTS MODEL
 ```{r}
 m_adjust <- lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc, data = nh2)
 summary(m_adjust)
 checka(m_adjust)
+m_adjust %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***log(Y) Adjusted Model Regression Summary***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+  
+  
 ```
 
 ## Due to constant variance plot having clusters and literature, we think that TT distribution by sex underlies the trend. Test this by stratifying model. See that in stratified models, this is elimnated 
@@ -231,12 +339,26 @@ m_F = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heigh
              Diabete + HypT + TotCholc,
          data = nhFemale)
 summary(m_F)
-plot(m_F$fitted.values, m_F$residuals)
+m_F %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Male Specific Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+plot(m_F$fitted.values, m_F$residuals, xlab="Fitted Values", ylab= "Studentized Residuals", main= "Fitted vs Residuals Plot Male Model")
 m_M = lm(log(Testosterone)~ RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc,
          data = nhMale)
 summary(m_M)
-plot(m_F$fitted.values, m_F$residuals)
+m_M %>%
+    tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Female Specific Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
+plot(m_F$fitted.values, m_F$residuals, xlab="Fitted Values", ylab= "Studentized Residuals", main= "Fitted vs Residuals Plot Female Model")
 ```
 
 ## Multicolinearity check
@@ -244,19 +366,21 @@ plot(m_F$fitted.values, m_F$residuals)
 car::vif(m_adjusted_nolog)
 ```
 
-
-
-
-
-
-
 ##Adding interactions. Based on analysis and stratified models, we assume Sex has effect modifcation on variables. 
 ```{r}
 m_int <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc + Sex*(RegMarij + Agec + Race1  + Depress + Weightc + Heightc +
              Diabete + HypT + TotCholc),  data = nh2))
 summary(m_int)
+m_int %>%
+  tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Interaction Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
 ```
+
 ## Remove all insig interactions, and checks assumptions (not linearity, as this is checked only for main effects (see above))
 ```{r}
 m_final <- lm(lm(log(Testosterone)~ RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
@@ -267,7 +391,16 @@ plot(m_final$fitted.values, m_final$residuals)
 hist(m_final$residuals)
 car::qqPlot(m_final$residuals)
 shapiro.test(m_final$residuals)
+m_final %>%
+    tbl_regression(
+    intercept = TRUE) %>%
+  bold_p(t=0.05) %>%
+  bold_labels() %>% 
+  modify_caption("***Final Model***") %>%
+  modify_footnote( update = p.value ~ "t-test" )
 ```
+
+## Outlier Evaluation: We need to identify potential influential points and tests if it can be removed. 
 ```{r}
 olsrr::ols_plot_dffits(m_final)
 olsrr::ols_plot_dfbetas(m_final)
@@ -276,18 +409,4 @@ m_alt_cov = covratio(m_final)
 n = nrow(nh2) 
 p = m_final$rank
 plot(m_alt_cov); abline(1+3*p/n,0); abline(1-3*p/n,0)
-```
-
-
-## For discussion, in main effects model, test if mean test is same for race groups (not something we need to include, but idk, we can get rid of, just thought it was a way to utilize GLH learned in class)
-```{r}
-m_wo_its =  lm(log(Testosterone)~ -1 + RegMarij + Sex + Agec + Race1  + Depress + Weightc + Heightc +
-             Diabete + HypT + TotCholc, data = nh2)
-summary(m_wo_its)
-#Test if all five are same
-Contrast.T = matrix(c(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0),byrow = T, nrow = 4) 
-car::linearHypothesis(model=m_wo_its,hypothesis.matrix=Contrast.T, rsh=c(0,0,0,0))
-#Test if (4) are same 
-Contrast.T = matrix(c(0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,-1,0,0,0,0,0,0),byrow = T, nrow = 3)
-car::linearHypothesis(model=m_wo_its,hypothesis.matrix=Contrast.T, rsh=c(0,0,0))
 ```
