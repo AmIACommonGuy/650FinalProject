@@ -17,9 +17,7 @@ library("gtsummary")
 library("dplyr")
 library("olsrr")
 library("knitr")
-install.packages("kableExtra")
 library(kableExtra)
-install.packages("moderndive")
 library("moderndive")
 ```
 
@@ -104,7 +102,7 @@ nhF[,c("Age","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularM
 ```
 
 ##Exploratory Stats: Male only Complete/Incomplete Data Set
-The same reasoning as the female set.
+
 ```{r}
 nhM[,c("Age","Race1","Depressed","Diabetes","TotChol", "Testosterone", "RegularMarij", "Weight", "Height", "HypT", "Incomplete")] %>%
  tbl_summary(by = Incomplete,
@@ -191,7 +189,7 @@ Our first limitation is that complete/incomplete data are significantly differen
 
 ## Exploratory Stats: Testosterone (and other continous)  by Categorical Variables Tables (assess)
 This is used to justify categorical variables.
-```{r}
+```{r include=FALSE}
 SummaryTestTable <- function(x){ 
 nh3 = nh2[,c(all_of(x),"Testosterone", "Age", "TotChol", "Weight", "Height")]
   nh3 %>%
@@ -211,8 +209,12 @@ nh3 = nh2[,c(all_of(x),"Testosterone", "Age", "TotChol", "Weight", "Height")]
   bold_p(t = 0.05) %>%
   bold_labels}
 for (i in c("Gender","Diabetes", "HypT", "RegularMarij", "Depress")) {
-  print(SummaryTestTable(i))
+  SummaryTestTable(i)
 }
+```
+
+
+```{r}
 nh3 = nh2[,c("Race1","Testosterone", "Age", "TotChol", "Weight", "Height")]
   nh3 %>%
    tbl_summary(by = Race1,
